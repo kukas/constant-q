@@ -2,7 +2,7 @@
 Naive [Constant Q transform](http://academics.wellesley.edu/Physics/brown/pubs/cq1stPaper.pdf) implementation in Haskell. CQT is more suitable for melodic input data than discrete Fourier transform because the transform resolution in lower frequency bands is bigger - in other words the bin frequency/resolution ratio remains constant.
 
 ![constant q transform of cello](doc/cello.png)
-
+Example of Constant Q transform of a [violoncello sample](input/cello.wav)
 ## Running
 The code is structured as a Stack package. The build should be easily reproducible by running `stack build` in the root directory.
 
