@@ -26,7 +26,7 @@ Options:
 
 `stack exec -- constant-q-exe -i input/cello.wav -o doc/cello.png -q 50 -p 200 -min 220`
 
-Setting the minimum frequency to 220 Hz and Q factor down to 50 speeds up the computation considerably. The hop size is adjusted to create an image with bigger width.
+Setting the _minimum frequency_ to 220 Hz and _Q factor_ down to 50 speeds up the computation considerably. The hop size was adjusted to create an image with bigger width.
 
 The output image is shown in the introduction section of the readme.
 
