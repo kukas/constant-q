@@ -1,0 +1,34 @@
+name:                constant-q
+version:             0.1.0.0
+github:              "kukas/constant-q"
+license:             BSD3
+author:              "Jirka Balhar"
+maintainer:          "balhar.j@gmail.com"
+copyright:           "2018 Jirka Balhar"
+
+extra-source-files:
+- README.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/githubuser/constant-q#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- WAVE == 0.1.3
+- hip >= 1.5.0.0 && < 1.6.0.0
+
+executables:
+  constant-q-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+
