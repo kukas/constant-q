@@ -2,6 +2,7 @@
 Naive [Constant Q transform](http://academics.wellesley.edu/Physics/brown/pubs/cq1stPaper.pdf) implementation in Haskell. CQT is more suitable for melodic input data than discrete Fourier transform because the transform resolution in lower frequency bands is bigger - in other words the bin frequency/resolution ratio remains constant.
 
 ![constant q transform of cello](doc/cello.png)
+
 Example of Constant Q transform of a [violoncello sample](input/cello.wav)
 ## Running
 The code is structured as a Stack package. The build should be easily reproducible by running `stack build` in the root directory.
@@ -10,7 +11,8 @@ The code is structured as a Stack package. The build should be easily reproducib
 
 ```
 Usage: constant-q-exe [OPTIONS]... -i INPUTFILE -o OUTPUTFILE
-Process INPUTFILE (in WAV format) and save the Constant Q transform spectrogram to OUTPUTFILE (png image format).
+Process INPUTFILE (in WAV format) and save the Constant Q transform 
+spectrogram to OUTPUTFILE (png image format).
 Options:
   -min FREQ Set minimum frequency to FREQ (default 110.0)
   -max FREQ Set maximum frequency to FREQ (default 11000.0)
@@ -21,7 +23,11 @@ Options:
 ```
 
 ## Usage example
+
 `stack exec -- constant-q-exe -i input/cello.wav -o doc/cello.png -q 50 -p 200 -min 220`
+
+Setting the minimum frequency to 220 Hz and Q factor down to 50 speeds up the computation considerably. The hop size is adjusted to create an image with bigger width.
+
 The output image is shown in the introduction section of the readme.
 
 ## Implementation
