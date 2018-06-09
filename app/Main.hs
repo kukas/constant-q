@@ -6,7 +6,7 @@ import Graphics.Image hiding (magnitude, fft, map, sum, cis, zipWith, product, m
 import System.Environment
 import System.Exit
 import Debug.Trace
--- import Data.Function.Memoize
+import Data.Array ((!), array)
 
 -- image output
 drawMatrix :: [[Double]] -> Image RPU Y Double
@@ -27,15 +27,6 @@ exp' q k n = cis $ -2 * pi * q * (fromIntegral k) / (fromIntegral n)
 -- precompexp :: Int -> Int -> (Int -> Int -> Complex Double)
 -- precompexp q nmax = trace ("nmax"++show nmax) ([([exp' q k n | k <- [0..n]] !!) | n <- [0..nmax]] !!)
 --     -- putStrLn $ "lol"++(show q)++(show nmax)
-
--- memoize
--- memoize :: (Int -> a) -> (Int -> a)
--- memoize f = (map f [0 ..] !!)
-
--- memoize2 :: (Int -> Int -> a) -> (Int -> Int -> a)
--- -- memoize2 f = (map (\x -> (map (f x) [0 ..] !!)) [0 ..] !!)
--- memoize2 f = (\x y -> memo !! x !! y)
---     where memo =  [[f x y | y <- [0..]] | x <- [0..]]
 
 -- indexed map
 mapi :: (Int -> a -> b) -> [a] -> [b]
@@ -76,17 +67,26 @@ constantq settings allsamples = map constq (slidingWindow _hopSize allsamples)
             where bwl = binWindowLength bin
                   bwl_f = fromIntegral bwl
         processSample :: Int -> Int -> Complex Double -> Complex Double
-        processSample bin i sample = (transformFactor bin i)*sample
+        processSample bin i sample = (transformFactorMemoized bin i)*sample
         -- bin variables
         binWindowLength bin = ceiling $ _sampleRate*_qFactor/(binFrequency bin)
         binFrequency bin = 2 ** ((fromIntegral bin)/_octaveBins) * _minFreq
         maxBin = ceiling $ log(_maxFreq/_minFreq)/log(2)*_octaveBins
         transformFactor :: Int -> Int -> Complex Double
-        transformFactor bin i = if i == 0 then trace (show bin ++ "x" ++ show i) $ x else x
+        transformFactor bin i = x
             where x = ((hannWindow bwl i) :+ 0)*((exp' _qFactor i bwl))
                   bwl = binWindowLength bin
-        -- transformFactorMemoized :: Int -> Int -> Complex Double
-        -- transformFactorMemoized = memoize2 transformFactor
+        -- memoized transformFactor using an array
+        transformFactorMemoized :: Int -> Int -> Complex Double
+        transformFactorMemoized bin i = get i bin
+          where
+            table = array (0, (maxI+1) * (maxBin+1))
+                [ (x + y * (maxI+1), transformFactor x y)
+                | y <- [0 .. maxBin]
+                , x <- [0 .. maxI]
+                ]
+            get x y = table ! (x + y * (maxI+1))
+            maxI = binWindowLength 0
         -- settings
         _minFreq = minFreq settings
         _maxFreq = maxFreq settings
