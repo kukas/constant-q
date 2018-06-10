@@ -7,6 +7,7 @@ import System.Environment
 import System.Exit
 import Debug.Trace
 import Data.Array ((!), array)
+-- import Control.Parallel.Strategies
 
 -- image output
 drawMatrix :: [[Double]] -> Image RPU Y Double
@@ -36,8 +37,10 @@ cq_exp q k n = cis $ -2 * pi * q * (fromIntegral k) / (fromIntegral n)
 
 -- http://academics.wellesley.edu/Physics/brown/pubs/cq1stPaper.pdf
 constantq :: Arguments -> [Complex Double] -> [[Double]]
-constantq settings allsamples = map constq (slidingWindow _hopSize allsamples)
+constantq settings allsamples = cq
     where
+        cq = map constq (slidingWindow _hopSize allsamples)
+        -- parallel_cq = cq `using` parList rdeepseq
         -- process one step (one column in the resulting image)
         constq :: [Complex Double] -> [Double]
         constq samples = [processBin bin samples | bin <- [0..maxBin]]
@@ -52,22 +55,20 @@ constantq settings allsamples = map constq (slidingWindow _hopSize allsamples)
         binWindowLength bin = ceiling $ _sampleRate*_qFactor/(binFrequency bin)
         binFrequency bin = 2 ** ((fromIntegral bin)/_octaveBins) * _minFreq
         maxBin = ceiling $ log(_maxFreq/_minFreq)/log(2)*_octaveBins
+        maxI = binWindowLength 0
         transformFactor :: Int -> Int -> Complex Double
         transformFactor bin i = x
             where x = ((hannWindow bwl i) :+ 0)*((cq_exp _qFactor i bwl))
                   bwl = binWindowLength bin
         -- memoized transformFactor using an array
         transformFactorMemoized :: Int -> Int -> Complex Double
-        transformFactorMemoized bin i = get i bin
-          where
-            table = array (0, (maxI+1) * (maxBin+1))
-                [ (x + y * (maxI+1), transformFactor y x)
-                | y <- [0 .. maxBin]
-                , x <- [0 .. maxI]
-                , x < binWindowLength y
-                ]
-            get x y = table ! (x + y * (maxI+1))
-            maxI = binWindowLength 0
+        transformFactorMemoized bin i = transformFactorTable ! (i + bin * (maxI+1))
+        transformFactorTable = array (0, (maxI+1) * (maxBin+1))
+            [ (x + y * (maxI+1), transformFactor y x)
+            | y <- [0 .. maxBin]
+            , x <- [0 .. maxI]
+            , x < binWindowLength y
+            ]
         -- settings
         _minFreq = minFreq settings
         _maxFreq = maxFreq settings
@@ -123,7 +124,7 @@ main = do
     let defaultArgs = Arguments { inputFilename = ""
                                 , outputFilename = ""
                                 , sampleRate = 44100 -- dummy value, is set according to input file
-                                , minFreq = 55
+                                , minFreq = 110
                                 , maxFreq = 11000
                                 , qFactor = 72
                                 , octaveBins = 48
